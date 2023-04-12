@@ -1,6 +1,6 @@
-const assert = require('assert');
+//const assert = require('assert');
 
-const Environment = require('./environment');
+const Environment = require('./Environment');
 
 /**
 * Eva interpreter.
@@ -119,7 +119,7 @@ function isString(exp) {
 function isVariableName(exp) {
   return typeof exp === 'string' && /^[a-zA-Z][a-zA-Z0-9_]*$/.test(exp);
 }
-
+/*
 //--------------------------------------
 // Tests:
 
@@ -201,6 +201,7 @@ assert.strictEqual(eva.eval(
 
 20);
 
+
 assert.strictEqual(eva.eval(
   ['begin',
 
@@ -222,4 +223,7 @@ assert.strictEqual(eva.eval(
 
 
 console.log('All assertions passed!');
+/**/
+
+module.exports = Eva;
 
