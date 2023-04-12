@@ -6,6 +6,8 @@ const tests = [
   require('./math-test.js'),
   require('./variables-test.js'),
   require('./block-test.js'),
+  require('./if-test.js'),
+  require('./while-test.js'),
 ];
 
 const eva = new Eva(new Environment({
@@ -18,7 +20,7 @@ const eva = new Eva(new Environment({
 }));
 tests.forEach(test => (
   typeof test === 'function')?
-  test(eva) : console.log(`Test Error on test module ${test}`)
+    test(eva) : console.log(`Test Error on test module ${test}`)
 );
 
 console.log('All assertions passed!');

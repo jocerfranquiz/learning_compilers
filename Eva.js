@@ -1,4 +1,3 @@
-//const assert = require('assert');
 
 const Environment = require('./Environment');
 
@@ -60,6 +59,29 @@ class Eva {
     }
 
     //----------------------------------
+    // Comparison operators:
+
+    if (exp[0] === '>') {
+      return this.eval(exp[1], env) > this.eval(exp[2], env);
+    }
+
+    if (exp[0] === '>=') {
+      return this.eval(exp[1], env) >= this.eval(exp[2], env);
+    }
+
+    if (exp[0] === '<') {
+      return this.eval(exp[1], env) < this.eval(exp[2], env);
+    }
+
+    if (exp[0] === '<=') {
+      return this.eval(exp[1], env) <= this.eval(exp[2], env);
+    }
+
+    if (exp[0] === '=') {
+      return this.eval(exp[1], env) === this.eval(exp[2], env);
+    }
+
+    //----------------------------------
     // Block: sequence of expressions
 
     if (exp[0] === 'begin') {
@@ -90,7 +112,29 @@ class Eva {
     if (isVariableName(exp)) {
       return env.lookup(exp, env);
     }
- 
+
+    //----------------------------------
+    // if-expression:
+
+    if (exp[0] === 'if') {
+      const [_tag, condition, consequent, alternate] = exp;
+      if (this.eval(condition, env)) {
+        return this.eval(consequent, env);
+      }
+      return this.eval(alternate, env);
+    }
+
+    //----------------------------------
+    // while-expression:
+    if (exp[0] === 'while') {
+      const [_tag, condition, body] = exp;
+      let result;
+      while (this.eval(condition, env)) {
+        result =  this.eval(body, env);
+      }
+      return result;
+    }
+
     throw `Unimplemented: ${JSON.stringify(exp)}`;
   }
 
@@ -119,111 +163,6 @@ function isString(exp) {
 function isVariableName(exp) {
   return typeof exp === 'string' && /^[a-zA-Z][a-zA-Z0-9_]*$/.test(exp);
 }
-/*
-//--------------------------------------
-// Tests:
-
-const eva = new Eva(
-  new Environment({
-    null: null,
-    true: true,
-    false: false,
-    VERSION: '0.1',
-  })
-);
-
-assert.strictEqual(eva.eval(1), 1);
-assert.strictEqual(eva.eval('"hello"'), 'hello');
-
-// Math:
-
-assert.strictEqual(eva.eval(['+', 1, 5]), 6);
-assert.strictEqual(eva.eval(['+', ['+', 3, 2], 5]), 10);
-assert.strictEqual(eva.eval(['+', ['*', 3, 2], 5]), 11);
-assert.strictEqual(eva.eval(['**', 2, 8]), 256);
-assert.strictEqual(eva.eval(['%', 7, 5]), 2);
-assert.strictEqual(eva.eval(['/', 3, 2]), 1.5);
-assert.strictEqual(eva.eval(['-', 2, 3]), -1);
-try {
-  assert.strictEqual(eva.eval(['/', 1, 0]), Infinity);
-} catch (err) {
-  assert.strictEqual(err, 'Division by zero');
-}
-
-// Variables:
-
-assert.strictEqual(eva.eval(['var', 'x', 10]), 10);
-assert.strictEqual(eva.eval('x'), 10);
-assert.strictEqual(eva.eval(['var', 'y', 100]), 100);
-assert.strictEqual(eva.eval('y'), 100);
-
-assert.strictEqual(eva.eval('VERSION'), '0.1');
-
-// var isUser = true;
-assert.strictEqual(eva.eval(['var', 'isUser', 'true']), true);
-
-// Blocks:
-
-assert.strictEqual(eva.eval(
-  ['begin',
-    ['var', 'x', 10],
-    ['var', 'y', 20],
-
-    ['+', ['*', 'x', 'y'], 30]
-  ]),
-230);
-
-assert.strictEqual(eva.eval(
-  ['begin',
-    ['var', 'x', 10],
-    ['begin',
-      ['var', 'x', 20], 'x'
-    ],
-    'x',
-  ]),
-10);
-
-assert.strictEqual(eva.eval(
-  ['begin',
-
-    ['var', 'value', 10],
-
-    ['var', 'result', ['begin',
-
-      ['var', 'x', ['+', 'value', 10]],
-      'x'
-
-    ]],
-
-    'result'
-
-  ]),
-
-20);
-
-
-assert.strictEqual(eva.eval(
-  ['begin',
-
-    ['var', 'data', 10],
-
-    ['begin',
-
-      ['set', 'data', 100],
-
-    ],
-
-    'data',
-
-  ]),
-
-100);
-
-
-
-
-console.log('All assertions passed!');
-/**/
 
 module.exports = Eva;
 
