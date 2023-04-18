@@ -9,13 +9,13 @@ const tests = [
   require('./if-test.js'),
   require('./while-test.js'),
   require('./built-in-function-test.js'),
+  require('./user-defined-function-test.js'),
 ];
 
 const eva = new Eva();
 
 tests.forEach(test => test(eva));
 
-eva.eval(['print', '"Hello"', '"World!"']);
 
 console.log('All assertions passed!');
 
