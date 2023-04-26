@@ -1,7 +1,6 @@
 /**
  * AST Transformer.
  */
-
 class Transformer {
 
   /**
@@ -18,14 +17,49 @@ class Transformer {
    * Transforms  to nested -expressions.
    */
   transformSwitchToIf(switchExp) {
-    // Implement here: see Lecture 14
+    const [_tag, ...cases] = switchExp;
+
+    const ifExp = ['if', null, null, null];
+
+    let current = ifExp;
+
+    for (let i = 0; i < cases.length - 1; i++) {
+      const [currentCond, currentBlock] = cases[i];
+
+      current[1] = currentCond;
+      current[2] = currentBlock;
+
+      const next =  cases[i + 1];
+      const [nextCond, nextBlock] = next;
+
+      current[3] = nextCond === 'else'
+        ? nextBlock
+        : ['if'];
+
+      current = current[3];
+    }
+
+    return ifExp;
   }
 
   /**
    * Transforms  to 
    */
   transformForToWhile(forExp) {
-    // Implement here: see Lecture 14
+    const [_tag, init, condition, modifier, body] = forExp;
+
+    return ['begin', 
+              init,
+              [ 'while', condition, 
+                ['begin',
+                  [ 
+                    body,
+                    modifier
+                  ]
+                ]
+              ]
+            ]
+
   }
 
   /**
