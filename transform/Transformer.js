@@ -43,7 +43,7 @@ class Transformer {
   }
 
   /**
-   * Transforms  to 
+   * Transforms a for into a while
    */
   transformForToWhile(forExp) {
     const [_tag, init, condition, modifier, body] = forExp;
@@ -52,10 +52,8 @@ class Transformer {
               init,
               [ 'while', condition, 
                 ['begin',
-                  [ 
-                    body,
-                    modifier
-                  ]
+                  body,
+                  modifier,
                 ]
               ]
             ]
@@ -87,7 +85,7 @@ class Transformer {
   }
 
   /**
-   * Transforms  to (set foo (+ foo val))
+   * Transforms  to (set foo (- foo val))
    */
   transformDecValToSet(incExp) {
     const [_tag, exp, val] = incExp;

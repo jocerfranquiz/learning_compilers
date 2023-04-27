@@ -11,7 +11,17 @@ const tests = [
   require('./built-in-function-test.js'),
   require('./user-defined-function-test.js'),
   require('./lambda-function-test.js'),
+  require('./switch-test.js'),
+  require('./for-test.js'),
+  require('./inc-test.js'),
+  require('./dec-test.js'),
+  require('./inc-val-test.js'),
+  require('./dec-val-test.js'),
+//require('./class-test.js'),
+//require('./module-test.js'),
+//require('./import-test.js'),
 ];
+
 
 const eva = new Eva();
 

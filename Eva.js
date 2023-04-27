@@ -84,7 +84,7 @@ class Eva {
       const [_tag, condition, body] = exp;
       let result;
       while (this.eval(condition, env)) {
-        result =  this.eval(body, env);
+        result = this.eval(body, env);
       }
       return result;
     }
@@ -122,9 +122,57 @@ class Eva {
 
     if (exp[0] === 'for') {
       const whileExp = this._transformer
-      .transformForToWhile(exp);
+        .transformForToWhile(exp);
 
       return this.eval(whileExp, env);
+    }
+
+    // --------------------------------------------
+    // Increment: (++ foo)
+    //
+    // Syntactic sugar for: (set foo (+ foo 1))
+
+    if (exp[0] === '++') {
+      const setExp = this._transformer
+        .transformIncToSet(exp);
+
+      return this.eval(setExp, env);
+    }
+
+    // --------------------------------------------
+    // Decrement: (-- foo)
+    //
+    // Syntactic sugar for: (set foo (- foo 1))
+
+    if (exp[0] === '--') {
+      const setExp = this._transformer
+        .transformDecToSet(exp);
+
+      return this.eval(setExp, env);
+    }
+
+    // --------------------------------------------
+    // Increment: (+= foo inc)
+    //
+    // Syntactic sugar for: (set foo (+ foo inc))
+
+    if (exp[0] === '+=') {
+      const setExp = this._transformer
+        .transformIncValToSet(exp);
+
+      return this.eval(setExp, env);
+    }
+
+    // --------------------------------------------
+    // Decrement: (-= foo dec)
+    //
+    // Syntactic sugar for: (set foo (- foo dec))
+
+    if (exp[0] === '-=') {
+      const setExp = this._transformer
+        .transformDecValToSet(exp);
+
+      return this.eval(setExp, env);
     }
 
     //----------------------------------
