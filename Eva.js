@@ -5,8 +5,14 @@
 * AST interpreter. 
 */
 
+
+
+
 const Environment = require('./Environment');
 const Transformer = require('./transform/Transformer');
+const evaParser = require('./parser/evaParser');
+
+//const fs = require('fs');
 
 /**
 * Eva interpreter.
@@ -19,6 +25,13 @@ class Eva {
     this.global = global;
     this._transformer = new Transformer();
   }
+  /**
+  * Evaluates global code wrapping into a block.
+  */
+  evalGlobal(exp) {
+    return this._evalBody(exp, this.global);
+  }
+
   /**
   * Evaluates an expression on a given environment.
   */
@@ -55,9 +68,23 @@ class Eva {
     // Variable update: (set foo 10)
 
     if (exp[0] === 'set') {
-      const [_, name, value] = exp;
-      return env.assign(name, this.eval(value, env));
- 
+      const [_, ref, value] = exp;
+
+      // Assignment to a property:
+
+      if (ref[0] === 'prop') {
+        const [_tag, instance, propName] = ref;
+        const instanceEnv = this.eval(instance, env);
+
+        return instanceEnv.define(
+          propName,
+          this.eval(value, env),
+        );
+      }
+
+      // Simple assignment:
+
+      return env.assign(ref, this.eval(value, env));
     }
  
     //----------------------------------
@@ -83,8 +110,7 @@ class Eva {
     if (exp[0] === 'while') {
       const [_tag, condition, body] = exp;
       let result;
-      while (this.eval(condition, env)) {
-        result = this.eval(body, env);
+      while (this.eval(condition, env)) { result = this.eval(body, env);
       }
       return result;
     }
@@ -188,6 +214,87 @@ class Eva {
       };
     }
 
+    // --------------------------------------------
+    // Class declaration: (class <Name> <Parent> <Body>)
+
+    if (exp[0] === 'class') {
+      const [_tag, name, parent, body] = exp;
+
+      // A class is an environment! -- a storage of mrthods,
+      // and shared properties:
+
+      const parentEnv = this.eval(parent, env) || env;
+
+      const classEnv = new Environment({}, parentEnv);
+
+      // Body is evaluated in the class environment.
+
+      this._evalBody(body, classEnv);
+
+      // Class is accessible by name.
+
+      return env.define(name, classEnv);
+    }
+
+    // --------------------------------------------
+    // Super expressions: (super <ClassName>)
+
+    if (exp[0] === 'super') {
+      const [_tag, className] = exp;
+      return this.eval(className, env).parent;
+    }
+
+    // --------------------------------------------
+    // Class instantiation: (new <Class> <Arguments>...)
+
+    if (exp[0] === 'new') {
+      
+      const classEnv = this.eval(exp[1], env);
+
+      // An instance of a class is an environment!
+      // The `parent` component of the instance environment
+      // is set to its class.
+
+      const instanceEnv = new Environment({}, classEnv);
+
+      const args = exp
+        .slice(2)
+        .map(arg => this.eval(arg, env));
+
+      this._callUserDefinedFunction(
+        classEnv.lookup('constructor'),
+        [instanceEnv, ...args],
+      );
+
+      return instanceEnv;
+
+    }
+
+    // --------------------------------------------
+    // Property access: (prop <instance> <name>)
+
+    if (exp[0] === 'prop') {
+      const [_tag, instance, name] = exp;
+
+      const instanceEnv = this.eval(instance, env);
+
+      return instanceEnv.lookup(name);
+    }
+
+    // --------------------------------------------
+    // Module declaration: (module <name> <body>)
+
+    if (exp[0] === 'module') {
+      // Implement here: see Lecture 17
+    }
+
+    // --------------------------------------------
+    // Module import: (import <name>)
+    // (import (export1, export2, ...) <name>)
+
+    if (exp[0] === 'import') {
+      // Implement here: see Lecture 17
+    }
 
     //----------------------------------
     // Function calls:
@@ -212,6 +319,13 @@ class Eva {
 
       // 2. User-defined function:
 
+      return this._callUserDefinedFunction(fn, args);
+    }
+
+    throw `Unimplemented: ${JSON.stringify(exp)}`;
+  }
+
+  _callUserDefinedFunction(fn, args) {
       const activationRecord = {};
 
       fn.params.forEach((param, index) => {
@@ -224,9 +338,6 @@ class Eva {
       );
 
       return this._evalBody(fn.body, activationEnv);
-    }
-
-    throw `Unimplemented: ${JSON.stringify(exp)}`;
   }
 
   _evalBody(body, env) {
