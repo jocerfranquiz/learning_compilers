@@ -12,7 +12,7 @@ const Environment = require('./Environment');
 const Transformer = require('./transform/Transformer');
 const evaParser = require('./parser/evaParser');
 
-//const fs = require('fs');
+const fs = require('fs');
 
 /**
 * Eva interpreter.
@@ -285,7 +285,13 @@ class Eva {
     // Module declaration: (module <name> <body>)
 
     if (exp[0] === 'module') {
-      // Implement here: see Lecture 17
+      const [_tag, name, body] = exp;
+
+      const moduleEnv = new Environment({}, env);
+
+      this._evalBody(body, moduleEnv);
+
+      return env.define(name, moduleEnv);
     }
 
     // --------------------------------------------
@@ -293,7 +299,18 @@ class Eva {
     // (import (export1, export2, ...) <name>)
 
     if (exp[0] === 'import') {
-      // Implement here: see Lecture 17
+      const [_tag, name] = exp;
+
+      const moduleSrc = fs.readFileSync(
+        `${__dirname}/modules/${name}.eva`,
+        'utf-8',
+      );
+
+      const body = evaParser.parse(`(begin ${moduleSrc})`);
+
+      const moduleExp = ['module', name, body];
+
+      return this.eval(moduleExp, this.global);
     }
 
     //----------------------------------
