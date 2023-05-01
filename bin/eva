@@ -10,7 +10,7 @@
 const fs = require('fs');
 
 const evaParser = require('../parser/evaParser');
-const Eva = require('../Eva');
+const Eva = require('../engine');
 
 function evalGlobal(src, eva) {
   const exp = evaParser.parse(`(begin ${src})`);

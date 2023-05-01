@@ -1,5 +1,5 @@
-const Eva = require('../Eva');
-const Environment = require('../Environment');
+const Eva = require('../engine');
+//const Environment = require('../Environment');
 const evaParser = require('../parser/evaParser');
 
 const tests = [
